@@ -1,4 +1,4 @@
-# iCloud Image Preparer
+# iCloud Image Importer
 
 A **Spring Boot CLI utility** that helps organize and upload photos downloaded from iCloud to a local NAS (or any WebDAV-compatible storage).
 
@@ -11,8 +11,8 @@ The project provides two main commands:
 
 - **`image-upload-webdav`**  
   Reads already-sorted images from a `src` folder and uploads them to a WebDAV server.
-    - The destination server is provided via the `--dest-url` parameter.
     - Keeps folder hierarchy intact during upload.
+    - Deduplicates images by the name and file size. 
 
 ---
 
