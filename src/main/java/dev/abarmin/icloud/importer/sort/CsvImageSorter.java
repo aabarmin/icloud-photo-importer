@@ -138,6 +138,9 @@ public class CsvImageSorter {
     @SneakyThrows
     private Optional<LocalDate> getCreationDate(ImageMetadata metadata) {
         if (metadata instanceof JpegImageMetadata jpegMetadata) {
+            if (jpegMetadata.getExif() == null) {
+                return Optional.empty();
+            }
             final TiffField field = jpegMetadata.getExif().findField(ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL);
             if (field != null) {
                 final String dateTimeAsString = field.getStringValue();
