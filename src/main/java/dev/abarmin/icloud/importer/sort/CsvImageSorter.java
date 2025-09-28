@@ -37,8 +37,8 @@ import java.util.Optional;
 @ShellComponent
 public class CsvImageSorter {
 
-    private final List<String> imageExtensions = List.of("jpg", "heic", "gif", "png", "bmp", "jpeg", "dng", "webp", "avif", "tiff");
-    private final List<String> videoExtensions = List.of("mp4", "mov", "avi", "m4v");
+    private final List<String> imageExtensions = List.of("jpg", "heic", "gif", "png", "bmp", "jpeg", "dng", "webp", "avif", "tiff", "tif");
+    private final List<String> videoExtensions = List.of("mp4", "mov", "avi", "m4v", "mpg", "3gp");
     private final String unknownDate = "0000:00:00";
     private final DateTimeFormatter exifDateFormatter = DateTimeFormatter.ofPattern("yyyy:MM:dd");
     private final DateTimeFormatter fromDetailsDateFormatter = DateTimeFormatter
