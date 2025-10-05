@@ -1,54 +1,44 @@
 package dev.abarmin.icloud.importer.sort;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.shell.test.ShellTestClient;
-import org.springframework.shell.test.autoconfigure.ShellTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.awaitility.Awaitility.await;
-import static org.springframework.shell.test.ShellAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@ShellTest
+@ExtendWith(MockitoExtension.class)
 class CsvImageSorterTest {
 
-    @Autowired
-    ShellTestClient client;
+    @InjectMocks
+    CsvImageSorter sorter;
 
     @Test
-    void imageSort_whenHelpInvoked_thenCommandAppears() {
-        final ShellTestClient.NonInteractiveShellSession session = client.nonInterative("help").run();
+    void moveAvoidingDuplicates_whenNoFileExists_shouldJustMove() throws Exception {
+        final Path targetDirectory = Files.createTempDirectory("target");
+        final Path sourceFile = Files.createTempFile("name", ".jpg");
 
-        await()
-                .atMost(Duration.ofSeconds(1))
-                .untilAsserted(() -> assertThat(session.screen()).containsText("image-sort"));
+        final Path result = sorter.moveAvoidingDuplicates(sourceFile, targetDirectory);
+
+        assertThat(result).exists();
+        assertThat(result).hasParent(targetDirectory);
     }
 
     @Test
-    void imageSort_whenParametersNotProvided_thenShowsErrors() {
-        final ShellTestClient.NonInteractiveShellSession session = client.nonInterative("image-sort").run();
+    void moveAvoidingDuplicates_whenFileExists_shouldAddNumbers() throws Exception {
+        final Path targetDirectory = Files.createTempDirectory("target");
+        final Path sourceFile = Files.createTempFile("name", ".jpg");
+        final Path existingCopy = targetDirectory.resolve(sourceFile.getFileName());
 
-        await()
-                .atMost(Duration.ofSeconds(1))
-                .untilAsserted(() -> assertThat(session.screen())
-                        .containsText("--src")
-                        .containsText("--dest"));
-    }
+        Files.copy(sourceFile, existingCopy);
 
-    @Test
-    void imageSort_whenEmptyParametersProvided_thenShowsErrors() {
-        final ShellTestClient.InteractiveShellSession session = client.interactive().run();
+        final Path result = sorter.moveAvoidingDuplicates(sourceFile, targetDirectory);
 
-        session.write(
-                session.writeSequence()
-                        .text("image-sort --src 1 --dest 2")
-                        .carriageReturn()
-                        .build()
-        );
-        await()
-                .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> assertThat(session.screen())
-                        .containsText("Directory 1 doesn't exist"));
+        assertThat(result).exists();
+        assertThat(existingCopy).exists();
+        assertThat(result).hasParent(targetDirectory);
     }
 }

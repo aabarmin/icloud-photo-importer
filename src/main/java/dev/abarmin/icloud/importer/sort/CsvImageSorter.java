@@ -1,5 +1,6 @@
 package dev.abarmin.icloud.importer.sort;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
@@ -12,6 +13,7 @@ import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jline.terminal.Terminal;
@@ -106,8 +108,7 @@ public class CsvImageSorter {
             Files.createDirectories(finalDirectory);
         }
 
-        final Path targetFile = finalDirectory.resolve(filePath.getFileName());
-        Files.move(filePath, targetFile);
+        moveAvoidingDuplicates(filePath, finalDirectory);
     }
 
     @SneakyThrows
@@ -117,8 +118,35 @@ public class CsvImageSorter {
             Files.createDirectories(finalDirectory);
         }
 
-        final Path targetFile = finalDirectory.resolve(filePath.getFileName());
-        Files.move(filePath, targetFile);
+        moveAvoidingDuplicates(filePath, finalDirectory);
+    }
+
+    @SneakyThrows
+    private void toDuplicates(Path filePath, Path targetDirectory) {
+        final Path finalDirectory = targetDirectory.resolve("duplicates");
+        if (!Files.exists(finalDirectory)) {
+            Files.createDirectories(finalDirectory);
+        }
+        moveAvoidingDuplicates(filePath, finalDirectory);
+    }
+
+    @SneakyThrows
+    @VisibleForTesting
+    Path moveAvoidingDuplicates(Path filePath, Path targetDirectory) {
+        if (!Files.exists(targetDirectory)) {
+            throw new RuntimeException("Target directory " + targetDirectory + " must exist");
+        }
+        final String originalFilename = filePath.getFileName().toString();
+        int counter = 1;
+        String targetFilename = originalFilename;
+        Path targetFile = targetDirectory.resolve(targetFilename);
+        while (Files.exists(targetFile)) {
+            targetFilename = FilenameUtils.getBaseName(originalFilename) + "_" + counter + "." + FilenameUtils.getExtension(originalFilename);
+            counter++;
+            targetFile = targetDirectory.resolve(targetFilename);
+        }
+
+        return Files.move(filePath, targetFile);
     }
 
     @SneakyThrows
@@ -172,17 +200,6 @@ public class CsvImageSorter {
         } catch (FileAlreadyExistsException e) {
             toDuplicates(image, targetDirectory);
         }
-    }
-
-    @SneakyThrows
-    private void toDuplicates(Path filePath, Path targetDirectory) {
-        final Path finalDirectory = targetDirectory.resolve("duplicates");
-        if (!Files.exists(finalDirectory)) {
-            Files.createDirectories(finalDirectory);
-        }
-
-        final Path targetFile = finalDirectory.resolve(filePath.getFileName());
-        Files.move(filePath, targetFile);
     }
 
     private Map<String, PhotoDetails> getPhotoDetails(List<Path> sources) {

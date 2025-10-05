@@ -35,6 +35,7 @@ dependencies {
 	implementation("org.apache.commons:commons-lang3:3.18.0")
 	implementation("com.github.lookfirst:sardine:5.13")
 	implementation("org.apache.commons:commons-csv:1.14.1")
+	implementation("com.google.guava:guava:33.5.0-jre")
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
