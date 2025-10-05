@@ -223,7 +223,7 @@ public class CsvImageSorter {
         final List<Path> files = Files.list(source).toList();
         final Map<String, Path> result = new HashMap<>();
         for (Path file : files) {
-            if (Files.isRegularFile(file) && (isImage(file) || isVideo(file))) {
+            if (Files.isRegularFile(file) && (isImage(file) || isVideo(file)) && !isHidden(file)) {
                 final String filename = file.getFileName().toString();
                 result.put(filename, file);
             } else if (Files.isDirectory(file)) {
@@ -231,6 +231,11 @@ public class CsvImageSorter {
             }
         }
         return result;
+    }
+
+    @SneakyThrows
+    private boolean isHidden(Path file) {
+        return Files.isHidden(file);
     }
 
     private boolean isImage(Path file) {
